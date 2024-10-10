@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Blockchain</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Blockchain</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="alert alert-dismissible fade show mt-3" role="alert">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Timestamp</th>
+                    <th>Transactions</th>
+                    <th>Proof</th>
+                    <th>Previous Hash</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for block in chain %}
+                <tr>
+                    <td>{{ block['index'] }}</td>
+                    <td>{{ block['timestamp'] }}</td>
+                    <td>{{ block['transactions'] }}</td>
+                    <td>{{ block['proof'] }}</td>
+                    <td>{{ block['previous_hash'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Back to Home</a>
+    </div>
+</body>
+</html>

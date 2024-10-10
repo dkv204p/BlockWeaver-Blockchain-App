@@ -1,18 +1,30 @@
 import hashlib
 import json
 from time import time
+import psycopg2
+from config import DB_CONFIG
 
 class Blockchain:
     def __init__(self):
         self.chain = []
         self.pending_transactions = []
-        # Create the genesis block
+        self.connection = psycopg2.connect(**DB_CONFIG)
         self.create_block(proof=1, previous_hash='0')
 
     def create_block(self, proof, previous_hash):
+        cursor = self.connection.cursor()
+        timestamp = time()
+        cursor.execute(
+            "INSERT INTO blocks (timestamp, proof, previous_hash) VALUES (to_timestamp(%s), %s, %s) RETURNING id",
+            (timestamp, proof, previous_hash)
+        )
+        self.connection.commit()
+        block_id = cursor.fetchone()[0]
+        cursor.close()
+
         block = {
-            'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'index': block_id,
+            'timestamp': timestamp,
             'transactions': self.pending_transactions,
             'proof': proof,
             'previous_hash': previous_hash,
@@ -53,10 +65,8 @@ class Blockchain:
 
         while block_index < len(self.chain):
             block = self.chain[block_index]
-            # Validate the hash of the block
             if block['previous_hash'] != self.hash_block(previous_block):
                 return False
-            # Validate proof of work
             if not self.is_valid_proof(previous_block['proof'], block['proof']):
                 return False
             previous_block = block

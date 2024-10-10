@@ -1,8 +1,10 @@
-from flask import Flask, jsonify, request, render_template # type: ignore
+from flask import Flask, jsonify, request, render_template, redirect, url_for, flash
 from blockchain import Blockchain
+from config import SECRET_KEY, DB_CONFIG
+import psycopg2
 
-# Instantiate the Flask app
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
 
 # Create an instance of the Blockchain class
 blockchain = Blockchain()
@@ -12,6 +14,25 @@ blockchain = Blockchain()
 def index():
     return render_template('index.html')
 
+# Route to submit a new transaction
+@app.route('/transactions/new', methods=['GET', 'POST'])
+def submit_transaction():
+    if request.method == 'POST':
+        values = request.form
+
+        # Required fields for a transaction
+        required = ['sender', 'recipient', 'amount']
+        if not all(field in values for field in required):
+            flash('Missing fields in the transaction form', 'danger')
+            return redirect(url_for('submit_transaction'))
+
+        # Create a new transaction
+        index = blockchain.add_transaction(values['sender'], values['recipient'], float(values['amount']))
+        flash(f'Transaction will be added to Block {index}', 'success')
+        return redirect(url_for('submit_transaction'))
+
+    return render_template('submit_transaction.html')
+
 # Route to mine a new block
 @app.route('/mine', methods=['GET'])
 def mine_block():
@@ -19,42 +40,17 @@ def mine_block():
     last_proof = last_block['proof']
     proof = blockchain.proof_of_work(last_proof)
 
-    # We reward the miner by adding a new transaction
+    # Reward the miner
     blockchain.add_transaction(sender="0", recipient="your_address", amount=1)
 
     block = blockchain.create_block(proof, blockchain.hash_block(last_block))
-    response = {
-        'message': 'New block has been mined',
-        'index': block['index'],
-        'transactions': block['transactions'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash']
-    }
-    return jsonify(response), 200
-
-# Route to add a new transaction
-@app.route('/transactions/new', methods=['POST'])
-def new_transaction():
-    values = request.get_json()
-
-    # Required fields for a transaction
-    required = ['sender', 'recipient', 'amount']
-    if not all(field in values for field in required):
-        return 'Missing fields', 400
-
-    # Create a new transaction
-    index = blockchain.add_transaction(values['sender'], values['recipient'], values['amount'])
-    response = {'message': f'Transaction will be added to Block {index}'}
-    return jsonify(response), 201
+    flash('New block has been mined', 'success')
+    return render_template('mine_block.html', block=block)
 
 # Route to return the full blockchain
 @app.route('/chain', methods=['GET'])
 def full_chain():
-    response = {
-        'chain': blockchain.chain,
-        'length': len(blockchain.chain),
-    }
-    return jsonify(response), 200
+    return render_template('view_blockchain.html', chain=blockchain.chain)
 
 # Run the Flask app
 if __name__ == '__main__':

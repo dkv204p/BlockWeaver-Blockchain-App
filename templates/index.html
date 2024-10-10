@@ -3,59 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlockWeaver - Blockchain Explorer</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        form, button { margin: 20px; }
-    </style>
+    <title>BlockWeaver - Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <h1>Welcome to BlockWeaver</h1>
-
-    <h2>Submit Transaction</h2>
-    <form id="transactionForm">
-        <label>Sender:</label>
-        <input type="text" id="sender"><br><br>
-        <label>Recipient:</label>
-        <input type="text" id="recipient"><br><br>
-        <label>Amount:</label>
-        <input type="number" id="amount"><br><br>
-        <button type="button" onclick="submitTransaction()">Submit Transaction</button>
-    </form>
-
-    <h2>Mine New Block</h2>
-    <button onclick="mineBlock()">Mine Block</button>
-
-    <h2>View Blockchain</h2>
-    <button onclick="getBlockchain()">View Blockchain</button>
-    <pre id="blockchainData"></pre>
-
-    <script>
-        function submitTransaction() {
-            const sender = document.getElementById('sender').value;
-            const recipient = document.getElementById('recipient').value;
-            const amount = document.getElementById('amount').value;
-
-            fetch('/transactions/new', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sender, recipient, amount })
-            }).then(response => response.json())
-              .then(data => alert(data.message));
-        }
-
-        function mineBlock() {
-            fetch('/mine').then(response => response.json())
-                          .then(data => alert(data.message));
-        }
-
-        function getBlockchain() {
-            fetch('/chain').then(response => response.json())
-                           .then(data => {
-                               const blockchainData = document.getElementById('blockchainData');
-                               blockchainData.textContent = JSON.stringify(data, null, 2);
-                           });
-        }
-    </script>
+    <div class="container">
+        <h1 class="mt-5">Welcome to BlockWeaver</h1>
+        <p class="lead">Choose an action:</p>
+        <a href="{{ url_for('submit_transaction') }}" class="btn btn-primary">Submit Transaction</a>
+        <a href="{{ url_for('mine_block') }}" class="btn btn-success">Mine Block</a>
+        <a href="{{ url_for('full_chain') }}" class="btn btn-info">View Blockchain</a>
+    </div>
 </body>
 </html>
